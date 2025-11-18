@@ -8,73 +8,73 @@
 </head>
 <body>
   <div id="app">
-    <aside id="sidebar" role="complementary" aria-label="Seitenleiste">
+    <aside id="sidebar">
       <h2>GuessIt</h2>
       <div id="rankingContainer">
         <h3>Ranking</h3>
-        <ol id="rankingList" aria-live="polite" aria-relevant="additions"></ol>
+        <ol id="rankingList"></ol>
       </div>
       <div id="controlsList">
-        <button id="btnTutorial" type="button" aria-label="Tutorial starten">Tutorial</button>
-        <button id="btnNewGame" type="button" aria-label="Neues Spiel starten">Neues Spiel</button>
-        <button id="btnAddLocation" type="button" aria-label="Ort hinzufügen">Ort hinzufügen</button>
-        <button id="btnExportLocations" type="button" aria-label="Orte exportieren">Orte exportieren</button>
+        <button id="btnTutorial">Tutorial</button>
+        <button id="btnNewGame">Neues Spiel</button>
+        <button id="btnAddLocation">Ort hinzufügen</button>
+        <button id="btnExportLocations">Orte exportieren</button>
       </div>
       <footer>Local Highscores • max 25</footer>
     </aside>
 
-    <main id="main" role="main">
+    <main id="main">
       <header id="topbar">
         <div id="title">GuessIt</div>
-        <div id="sessionInfo" aria-live="polite"></div>
+        <div id="sessionInfo"></div>
       </header>
 
       <section id="playArea">
-        <div id="streetview" class="panel" aria-label="Street View Karte"></div>
+        <div id="streetview" class="panel"></div>
 
-        <div id="miniMapContainer" class="panel small" aria-label="Mini Karte">
+        <div id="miniMapContainer" class="panel small">
           <div id="miniMap"></div>
           <div id="miniHint">Tippe zum Setzen des Markers. Tippe erneut, um ihn zu verschieben.</div>
         </div>
 
         <div id="hud">
-          <div id="timer" aria-live="polite" aria-atomic="true" aria-label="Timer">02:00</div>
-          <button id="guessBtn" type="button" disabled aria-disabled="true">GuessIt</button>
+          <div id="timer">02:00</div>
+          <button id="guessBtn" disabled>GuessIt</button>
         </div>
 
-        <div id="resultPanel" class="panel hidden" aria-hidden="true"></div>
+        <div id="resultPanel" class="panel hidden"></div>
       </section>
     </main>
   </div>
 
   <!-- Overlay and minimal API-key modal -->
-  <div id="modalOverlay" class="hidden" aria-hidden="true"></div>
+  <div id="modalOverlay" class="hidden"></div>
 
   <div id="apiModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="apiModalTitle" aria-describedby="apiModalDesc">
     <div class="modalContent">
       <h2 id="apiModalTitle">Google Maps API-Key</h2>
       <p id="apiModalDesc">Kurz: Der Key wird <strong>nicht</strong> gespeichert. Bitte eingeben:</p>
-      <input id="apiKeyInput" placeholder="API Key" autocomplete="off" aria-required="true" />
+      <input id="apiKeyInput" placeholder="API Key" autocomplete="off" />
       <div class="modalActions">
         <button id="apiLoadBtn" type="button">Weiter</button>
       </div>
-      <div id="apiStatus" style="margin-top:8px;font-size:13px;color:#666" aria-live="assertive"></div>
+      <div id="apiStatus" style="margin-top:8px;font-size:13px;color:#666"></div>
     </div>
   </div>
 
   <!-- Message modal -->
-  <div id="messageModal" class="modal hidden" role="alertdialog" aria-modal="true" aria-labelledby="messageText" aria-describedby="messageText">
+  <div id="messageModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="messageTitle" aria-describedby="messageText">
     <div class="modalContent">
-      <div id="messageText"></div>
+      <div id="messageText" tabindex="0"></div>
       <div class="modalActions">
         <button id="messageOk" type="button">OK</button>
       </div>
     </div>
   </div>
 
-  <script src="game.js" defer></script>
+  <script src="game.js"></script>
 
-  <script defer>
+  <script>
   (function(){
     const apiModal = document.getElementById('apiModal');
     const apiOverlay = document.getElementById('modalOverlay');
@@ -82,21 +82,8 @@
     const apiBtn = document.getElementById('apiLoadBtn');
     const statusEl = document.getElementById('apiStatus');
 
-    function showApiModal(){ 
-      apiOverlay.classList.remove('hidden'); 
-      apiOverlay.setAttribute('aria-hidden', 'false');
-      apiModal.classList.remove('hidden'); 
-      apiModal.focus();
-      apiModal.setAttribute('aria-hidden', 'false');
-      apiInput.focus(); 
-    }
-    function hideApiModal(){ 
-      apiOverlay.classList.add('hidden');
-      apiOverlay.setAttribute('aria-hidden', 'true');
-      apiModal.classList.add('hidden'); 
-      apiModal.setAttribute('aria-hidden', 'true');
-      statusEl.textContent = ''; 
-    }
+    function showApiModal(){ apiOverlay.classList.remove('hidden'); apiModal.classList.remove('hidden'); apiInput.focus(); }
+    function hideApiModal(){ apiOverlay.classList.add('hidden'); apiModal.classList.add('hidden'); statusEl.textContent = ''; }
 
     function mapsScriptExists(){
       return Array.from(document.getElementsByTagName('script')).some(s=> s.src && s.src.indexOf('maps.googleapis.com')!==-1);
@@ -127,14 +114,14 @@
       }
 
       window._mapsLoading = true;
-      window._mapsKey = null; 
+      window._mapsKey = null;
       const s = document.createElement('script');
       s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&v=weekly&callback=_onMapsReady';
       s.async = true;
       s.defer = true;
       s.onerror = function(){
         loading = false;
-        statusEl.textContent = 'Fehler beim Laden. Prüfe Key/Referrer. ';
+        statusEl.textContent = 'Fehler beim Laden. Prüfe Key/Referrer.';
       };
       document.head.appendChild(s);
     });
@@ -145,11 +132,34 @@
       if(window.initGame) window.initGame();
     };
 
-    document.getElementById('messageOk').addEventListener('click', ()=>{
-      document.getElementById('messageModal').classList.add('hidden');
-      document.getElementById('modalOverlay').classList.add('hidden');
-    });
   })();
+
+  // Message modal logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('messageModal');
+    const overlay = document.getElementById('modalOverlay');
+    const messageText = document.getElementById('messageText');
+    const btnOk = document.getElementById('messageOk');
+
+    function showMessage(html, showOk = false) {
+      messageText.innerHTML = html;
+      modal.classList.remove('hidden');
+      overlay.classList.remove('hidden');
+      btnOk.style.display = showOk ? 'inline-block' : 'none';
+      btnOk.focus();
+    }
+
+    function hideMessage() {
+      modal.classList.add('hidden');
+      overlay.classList.add('hidden');
+    }
+
+    btnOk.addEventListener('click', hideMessage);
+    overlay.addEventListener('click', hideMessage);
+
+    window.showMessage = showMessage;
+    window.hideMessage = hideMessage;
+  });
   </script>
 </body>
 </html>
