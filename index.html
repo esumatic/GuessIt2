@@ -8,74 +8,73 @@
 </head>
 <body>
   <div id="app">
-    <aside id="sidebar">
+    <aside id="sidebar" role="complementary" aria-label="Seitenleiste">
       <h2>GuessIt</h2>
       <div id="rankingContainer">
         <h3>Ranking</h3>
-        <ol id="rankingList"></ol>
+        <ol id="rankingList" aria-live="polite" aria-relevant="additions"></ol>
       </div>
       <div id="controlsList">
-        <button id="btnTutorial">Tutorial</button>
-        <button id="btnNewGame">Neues Spiel</button>
-        <button id="btnAddLocation">Ort hinzufügen</button>
-        <button id="btnExportLocations">Orte exportieren</button>
+        <button id="btnTutorial" type="button" aria-label="Tutorial starten">Tutorial</button>
+        <button id="btnNewGame" type="button" aria-label="Neues Spiel starten">Neues Spiel</button>
+        <button id="btnAddLocation" type="button" aria-label="Ort hinzufügen">Ort hinzufügen</button>
+        <button id="btnExportLocations" type="button" aria-label="Orte exportieren">Orte exportieren</button>
       </div>
       <footer>Local Highscores • max 25</footer>
     </aside>
 
-    <main id="main">
+    <main id="main" role="main">
       <header id="topbar">
         <div id="title">GuessIt</div>
-        <div id="sessionInfo"></div>
+        <div id="sessionInfo" aria-live="polite"></div>
       </header>
 
       <section id="playArea">
-        <div id="streetview" class="panel"></div>
+        <div id="streetview" class="panel" aria-label="Street View Karte"></div>
 
-        <div id="miniMapContainer" class="panel small">
+        <div id="miniMapContainer" class="panel small" aria-label="Mini Karte">
           <div id="miniMap"></div>
           <div id="miniHint">Tippe zum Setzen des Markers. Tippe erneut, um ihn zu verschieben.</div>
         </div>
 
         <div id="hud">
-          <div id="timer">02:00</div>
-          <button id="guessBtn" disabled>GuessIt</button>
+          <div id="timer" aria-live="polite" aria-atomic="true" aria-label="Timer">02:00</div>
+          <button id="guessBtn" type="button" disabled aria-disabled="true">GuessIt</button>
         </div>
 
-        <div id="resultPanel" class="panel hidden"></div>
+        <div id="resultPanel" class="panel hidden" aria-hidden="true"></div>
       </section>
     </main>
   </div>
 
   <!-- Overlay and minimal API-key modal -->
-  <div id="modalOverlay" class="hidden"></div>
+  <div id="modalOverlay" class="hidden" aria-hidden="true"></div>
 
-  <div id="apiModal" class="modal">
+  <div id="apiModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="apiModalTitle" aria-describedby="apiModalDesc">
     <div class="modalContent">
-      <h2>Google Maps API-Key</h2>
-      <p>Kurz: Der Key wird <strong>nicht</strong> gespeichert. Bitte eingeben:</p>
-      <input id="apiKeyInput" placeholder="API Key" autocomplete="off" />
+      <h2 id="apiModalTitle">Google Maps API-Key</h2>
+      <p id="apiModalDesc">Kurz: Der Key wird <strong>nicht</strong> gespeichert. Bitte eingeben:</p>
+      <input id="apiKeyInput" placeholder="API Key" autocomplete="off" aria-required="true" />
       <div class="modalActions">
-        <button id="apiLoadBtn">Weiter</button>
+        <button id="apiLoadBtn" type="button">Weiter</button>
       </div>
-      <div id="apiStatus" style="margin-top:8px;font-size:13px;color:#666"></div>
+      <div id="apiStatus" style="margin-top:8px;font-size:13px;color:#666" aria-live="assertive"></div>
     </div>
   </div>
 
   <!-- Message modal -->
-  <div id="messageModal" class="modal hidden">
+  <div id="messageModal" class="modal hidden" role="alertdialog" aria-modal="true" aria-labelledby="messageText" aria-describedby="messageText">
     <div class="modalContent">
       <div id="messageText"></div>
       <div class="modalActions">
-        <button id="messageOk">OK</button>
+        <button id="messageOk" type="button">OK</button>
       </div>
     </div>
   </div>
 
-  <script src="game.js"></script>
+  <script src="game.js" defer></script>
 
-  <script>
-  // Minimal, robust Maps loader. Loads API only after user enters key.
+  <script defer>
   (function(){
     const apiModal = document.getElementById('apiModal');
     const apiOverlay = document.getElementById('modalOverlay');
@@ -83,36 +82,42 @@
     const apiBtn = document.getElementById('apiLoadBtn');
     const statusEl = document.getElementById('apiStatus');
 
-    function showApiModal(){ apiOverlay.classList.remove('hidden'); apiModal.classList.remove('hidden'); apiInput.focus(); }
-    function hideApiModal(){ apiOverlay.classList.add('hidden'); apiModal.classList.add('hidden'); statusEl.textContent = ''; }
+    function showApiModal(){ 
+      apiOverlay.classList.remove('hidden'); 
+      apiOverlay.setAttribute('aria-hidden', 'false');
+      apiModal.classList.remove('hidden'); 
+      apiModal.focus();
+      apiModal.setAttribute('aria-hidden', 'false');
+      apiInput.focus(); 
+    }
+    function hideApiModal(){ 
+      apiOverlay.classList.add('hidden');
+      apiOverlay.setAttribute('aria-hidden', 'true');
+      apiModal.classList.add('hidden'); 
+      apiModal.setAttribute('aria-hidden', 'true');
+      statusEl.textContent = ''; 
+    }
 
-    // ensure no other script tag for maps exists
     function mapsScriptExists(){
       return Array.from(document.getElementsByTagName('script')).some(s=> s.src && s.src.indexOf('maps.googleapis.com')!==-1);
     }
 
-    // once page loads, show minimal modal
     document.addEventListener('DOMContentLoaded', ()=>{
-      // safety: if maps already present (shouldn't), don't show modal
       if(window.google && google.maps){
-        // maps already loaded — just init
         if(window.initGame) window.initGame();
         return;
       }
       showApiModal();
     });
 
-    // guard against double clicks
     let loading = false;
     apiBtn.addEventListener('click', ()=>{
       if(loading) return;
       const key = apiInput.value.trim();
       if(!key){ statusEl.textContent = 'Bitte Key eingeben.'; return; }
-      // do not store key anywhere
       loading = true;
       statusEl.textContent = 'Lade Google Maps...';
 
-      // Avoid injecting script twice
       if(mapsScriptExists()){
         statusEl.textContent = 'Maps-Script bereits vorhanden — versuche init.';
         loading = false;
@@ -121,9 +126,8 @@
         return;
       }
 
-      // create script with callback to _onMapsReady
       window._mapsLoading = true;
-      window._mapsKey = null; // explicitly not stored beyond runtime
+      window._mapsKey = null; 
       const s = document.createElement('script');
       s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&v=weekly&callback=_onMapsReady';
       s.async = true;
@@ -135,15 +139,12 @@
       document.head.appendChild(s);
     });
 
-    // Called by Google Maps when fully ready (global callback)
     window._onMapsReady = function(){
       window._mapsLoaded = true;
-      // hide modal and call init once
       hideApiModal();
       if(window.initGame) window.initGame();
     };
 
-    // Message modal ok
     document.getElementById('messageOk').addEventListener('click', ()=>{
       document.getElementById('messageModal').classList.add('hidden');
       document.getElementById('modalOverlay').classList.add('hidden');
@@ -152,4 +153,3 @@
   </script>
 </body>
 </html>
-
